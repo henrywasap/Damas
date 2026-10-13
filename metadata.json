@@ -1,0 +1,6 @@
+{
+  "name": "Damas Online Multijugador",
+  "description": "Juego de damas multijugador en tiempo real con salas por nombre, tablero interactivo, marcador cara a cara y estadísticas de victorias en vivo.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

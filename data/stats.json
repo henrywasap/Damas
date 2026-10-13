@@ -1,0 +1,81 @@
+{
+  "players": {
+    "sofia_master": {
+      "name": "Sofia Master",
+      "gamesPlayed": 14,
+      "wins": 11,
+      "losses": 2,
+      "draws": 1,
+      "winRate": 78.5,
+      "currentStreak": 4,
+      "bestStreak": 5,
+      "lastActive": 1791912211189
+    },
+    "alex_damas": {
+      "name": "Alex Damas",
+      "gamesPlayed": 10,
+      "wins": 7,
+      "losses": 3,
+      "draws": 0,
+      "winRate": 70,
+      "currentStreak": 2,
+      "bestStreak": 3,
+      "lastActive": 1791910711189
+    },
+    "carlos_v": {
+      "name": "Carlos V",
+      "gamesPlayed": 8,
+      "wins": 4,
+      "losses": 3,
+      "draws": 1,
+      "winRate": 50,
+      "currentStreak": 1,
+      "bestStreak": 2,
+      "lastActive": 1791906811189
+    },
+    "lucia_pro": {
+      "name": "Lucia Pro",
+      "gamesPlayed": 6,
+      "wins": 3,
+      "losses": 3,
+      "draws": 0,
+      "winRate": 50,
+      "currentStreak": 0,
+      "bestStreak": 2,
+      "lastActive": 1791903211189
+    }
+  },
+  "recentMatches": [
+    {
+      "id": "hist-1",
+      "roomId": "SALA-DIAMANTE",
+      "roomName": "Sala Diamante",
+      "redPlayer": "Sofia Master",
+      "blackPlayer": "Carlos V",
+      "winner": "Sofia Master",
+      "winnerColor": "red",
+      "winReason": "Negras eliminadas",
+      "totalMoves": 34,
+      "piecesLeftRed": 5,
+      "piecesLeftBlack": 0,
+      "date": 1791911311189,
+      "durationSeconds": 320
+    },
+    {
+      "id": "hist-2",
+      "roomId": "SALA-ORO",
+      "roomName": "Sala Oro",
+      "redPlayer": "Alex Damas",
+      "blackPlayer": "Lucia Pro",
+      "winner": "Alex Damas",
+      "winnerColor": "red",
+      "winReason": "Sin movimientos legales",
+      "totalMoves": 28,
+      "piecesLeftRed": 4,
+      "piecesLeftBlack": 1,
+      "date": 1791906811189,
+      "durationSeconds": 280
+    }
+  ],
+  "totalGamesEver": 22
+}
