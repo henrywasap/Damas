@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import {
   BoardState,
   Position,
@@ -12,6 +12,7 @@ import {
   getAllLegalMovesForPlayer,
 } from '../utils/checkersLogic.js';
 import { Crown, RotateCcw, Sparkles } from 'lucide-react';
+import { ParticleTrail } from './ParticleTrail.js';
 
 export type PieceSymbolMode =
   | 'tulip-red_pisces-black'
@@ -148,6 +149,7 @@ interface BoardProps {
   myRole: 'red' | 'black' | 'spectator' | null;
   chainJumpPiece: Position | null;
   lastMove: { from: Position; to: Position } | null;
+  lastKingMove: { from: Position; to: Position } | null;
   disabled: boolean;
   onMakeMove: (from: Position, to: Position) => void;
   onEndChainTurn?: () => void;
@@ -161,12 +163,28 @@ export const Board: React.FC<BoardProps> = ({
   myRole,
   chainJumpPiece,
   lastMove,
+  lastKingMove,
   disabled,
   onMakeMove,
   onEndChainTurn,
   redPiecesCount,
   blackPiecesCount,
 }) => {
+  // Measure cell size dynamically for the particle canvas
+  const gridRef = useRef<HTMLDivElement>(null);
+  const [cellSizePx, setCellSizePx] = useState(56);
+
+  useEffect(() => {
+    if (!gridRef.current) return;
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const w = entry.contentRect.width;
+        if (w > 0) setCellSizePx(w / 8);
+      }
+    });
+    observer.observe(gridRef.current);
+    return () => observer.disconnect();
+  }, []);
   const [selectedPos, setSelectedPos] = useState<Position | null>(null);
   const [isFlipped, setIsFlipped] = useState<boolean>(myRole === 'black');
   const [symbolMode, setSymbolMode] = useState<PieceSymbolMode>(() => {
@@ -378,7 +396,7 @@ export const Board: React.FC<BoardProps> = ({
           </div>
 
           {/* 8x8 Grid */}
-          <div className="grid grid-cols-8 grid-rows-8 border-2 border-[#1c1109] rounded-lg overflow-hidden shadow-inner bg-[#f6ecd9]">
+          <div ref={gridRef} className="relative grid grid-cols-8 grid-rows-8 border-2 border-[#1c1109] rounded-lg overflow-hidden shadow-inner bg-[#f6ecd9]">
             {rows.map((row) =>
               cols.map((col) => {
                 const isDarkSquare = (row + col) % 2 === 1;
@@ -434,6 +452,13 @@ export const Board: React.FC<BoardProps> = ({
                 );
               })
             )}
+
+            {/* Queen particle trail canvas — overlaid on top of the grid */}
+            <ParticleTrail
+              lastKingMove={lastKingMove}
+              cellSizePx={cellSizePx}
+              isFlipped={isFlipped}
+            />
           </div>
         </div>
       </div>
