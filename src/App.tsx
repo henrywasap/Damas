@@ -6,6 +6,7 @@ import { InGameChat } from './components/InGameChat.js';
 import { Lobby } from './components/Lobby.js';
 import { StatsView } from './components/StatsView.js';
 import { RulesModal } from './components/RulesModal.js';
+import { MemeAnimation } from './components/MemeAnimation.js';
 import {
   BoardState,
   PlayerColor,
@@ -59,6 +60,12 @@ export default function App() {
   const [isBotThinking, setIsBotThinking] = useState(false);
   const [localRoomState, setLocalRoomState] = useState<RoomState | null>(null);
 
+  // ─── Meme + particle state ────────────────────────────────────────────────
+  const [captureCount, setCaptureCount] = useState(0);
+  const [lastKingMove, setLastKingMove] = useState<{ from: Position; to: Position } | null>(null);
+  const [memeLoserName,  setMemeLoserName]  = useState('crack');
+  const [memeWinnerName, setMemeWinnerName] = useState('crack');
+
   // Check URL query parameters for ?sala= or ?room=
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -78,6 +85,37 @@ export default function App() {
       setView('lobby');
     }
   }, [roomState, isLocalMode, view]);
+
+  // Start ambient soundscape when entering a game
+  useEffect(() => {
+    if (view === 'game') {
+      sounds.initAmbient();
+    } else {
+      sounds.stopAmbient();
+    }
+  }, [view]);
+
+  // ─── Online capture detection ─────────────────────────────────────────────
+  // Compare piece counts on each new roomState poll; if fewer pieces → capture
+  const prevOnlinePiecesRef = useRef<number>(24);
+  const prevOnlineTurnRef   = useRef<PlayerColor>('red');
+  useEffect(() => {
+    if (isLocalMode || !roomState || roomState.status !== 'playing') return;
+    const total = (roomState.redPiecesCount ?? 0) + (roomState.blackPiecesCount ?? 0);
+    if (total < prevOnlinePiecesRef.current) {
+      // The player whose turn it NOW is the one who just captured
+      // (turn switches after a move unless chain jump)
+      const winner = roomState.turn;            // current turn = just moved
+      const loser: PlayerColor = winner === 'red' ? 'black' : 'red';
+      setMemeWinnerName(roomState.players[winner]?.name || 'crack');
+      setMemeLoserName(roomState.players[loser]?.name  || 'crack');
+      sounds.playRandomMeme();
+      setCaptureCount((c) => c + 1);
+    }
+    prevOnlinePiecesRef.current = total;
+    prevOnlineTurnRef.current   = roomState.turn;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roomState?.redPiecesCount, roomState?.blackPiecesCount, isLocalMode]);
 
   const toggleSound = () => {
     const nextMuted = sounds.toggleMute();
@@ -243,6 +281,7 @@ export default function App() {
           if (!matchedMove) return prev;
 
           const isCapture = !!matchedMove.captured;
+          const movingPiece = prev.board[from.row][from.col];
           const { newBoard, becameKing, canChainJump, nextChainPiece } = applyMove(
             prev.board,
             matchedMove
@@ -254,8 +293,20 @@ export default function App() {
             sounds.playCrown();
           } else if (isCapture) {
             sounds.playCapture();
+            // Trigger meme animation + sound
+            sounds.playRandomMeme();
+            // The LOSER is the one whose piece was eaten (opponent of current turn)
+            const loserColor: PlayerColor = prev.turn === 'red' ? 'black' : 'red';
+            setMemeLoserName(prev.players[loserColor]?.name || 'crack');
+            setMemeWinnerName(prev.players[prev.turn]?.name || 'crack');
+            setCaptureCount((c) => c + 1);
           } else {
             sounds.playMove();
+          }
+
+          // Track queen (king) moves for particle trail
+          if (movingPiece?.isKing || becameKing) {
+            setLastKingMove({ from, to });
           }
 
           const nextTurn: PlayerColor = prev.turn === 'red' ? 'black' : 'red';
@@ -602,6 +653,7 @@ export default function App() {
               myRole={activeRole}
               chainJumpPiece={activeRoom.chainJumpPiece}
               lastMove={activeRoom.lastMove}
+              lastKingMove={lastKingMove}
               disabled={
                 activeRoom.status !== 'playing' ||
                 (isBotMode && activeRoom.turn === botColor) ||
@@ -653,6 +705,13 @@ export default function App() {
 
       {/* Rules Modal */}
       <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
+
+      {/* Meme capture animation overlay */}
+      <MemeAnimation
+        captureCount={captureCount}
+        loserName={memeLoserName}
+        winnerName={memeWinnerName}
+      />
 
       {/* Footer */}
       <footer className="py-3 px-4 text-center text-[11px] text-stone-500 border-t border-stone-900 bg-stone-950/60">
